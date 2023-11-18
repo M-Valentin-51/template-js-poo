@@ -1,12 +1,18 @@
 const express = require("express");
-const router = express.Router();
+const Router = express.Router();
+const auth = require("../services/auth");
 
-const UserController = require("../controllers/userController");
+const User = require("../controllers/user.controller");
 
-router.post("/user", UserController.create);
-router.put("/user", UserController.update);
-router.get("/user/:id", UserController.readById);
-router.get("/user/", UserController.readAll);
-router.delete("/user/:id", UserController.deleteById);
+class UserRouter {
+  constructor() {
+    Router.post("/user", auth.hashPassword, User.create);
+    Router.put("/user/:id", User.update);
+    Router.get("/user/:id", User.readById);
+    Router.get("/user/", User.readAll);
+    Router.delete("/user/:id", User.deleteById);
+  }
+}
+new UserRouter();
 
-module.exports = router;
+module.exports = Router;

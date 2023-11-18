@@ -11,12 +11,12 @@ class UserManger extends AbstactManger {
     });
   }
 
-  async update(data, userId) {
+  async update(user, userId) {
     return this.model.update({
       where: {
         id: Number(userId),
       },
-      data,
+      data: user,
     });
   }
 }

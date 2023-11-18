@@ -1,25 +1,18 @@
 const UserManager = require("../managers/UserManager");
-const auth = require("../services/auth");
 const { Prisma } = require("@prisma/client");
 
 const userManager = new UserManager();
 
-class UserController {
-  static async create(req, res) {
-    this.email = req.body.email;
-    this.name = req.body.name;
-    try {
-      this.hashPassword = await auth.hashPassword(req.body.password);
-    } catch (err) {
-      res.sendStatus(500);
-    }
+class User {
+  static create = async (req, res) => {
+    const data = {
+      email: req.body.email,
+      name: req.body.name,
+      hashPassword: req.body.hashPassword,
+    };
 
     try {
-      const result = await userManager.insert({
-        email: this.email,
-        name: this.name,
-        hashPassword: this.hashPassword,
-      });
+      const result = await userManager.insert(data);
 
       const user = { ...result };
       delete user.hashPassword;
@@ -41,9 +34,46 @@ class UserController {
         }
       }
     }
-  }
+  };
 
-  static async deleteById(req, res) {
+  static update = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      await userManager.update(req.body, id);
+
+      res.sendStatus(204);
+    } catch (e) {
+      console.log(e);
+      if (e instanceof Prisma.PrismaClientKnownRequestError) {
+        // An operation failed because it depends on one or more records that were required but not found. {cause}
+        if (e.code == "P2025") {
+          res.sendStatus(404);
+        } else {
+          res.sendStatus(500);
+        }
+      }
+    }
+  };
+
+  static readById = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+      const customers = await userManager.findByUserId(id);
+
+      if (customers) {
+        res.json(customers);
+      } else {
+        res.sendStatus(404);
+      }
+    } catch (err) {
+      console.error(err);
+      res.sendStatus(500);
+    }
+  };
+
+  static deleteById = async (req, res) => {
     const { id } = req.params;
 
     try {
@@ -60,46 +90,9 @@ class UserController {
         }
       }
     }
-  }
+  };
 
-  static async update(req, res) {
-    const { id } = req.params;
-    const data = req.body;
-    try {
-      await userManager.update(data, id);
-
-      res.sendStatus(204);
-    } catch (e) {
-      console.log(e);
-      if (e instanceof Prisma.PrismaClientKnownRequestError) {
-        // An operation failed because it depends on one or more records that were required but not found. {cause}
-        if (e.code == "P2025") {
-          res.sendStatus(404);
-        } else {
-          res.sendStatus(500);
-        }
-      }
-    }
-  }
-
-  static async readById(req, res) {
-    const { id } = req.params;
-
-    try {
-      const customers = await userManager.findByUserId(id);
-
-      if (customers) {
-        res.json(customers);
-      } else {
-        res.sendStatus(404);
-      }
-    } catch (err) {
-      console.error(err);
-      res.sendStatus(500);
-    }
-  }
-
-  static async readAll(req, res) {
+  static readAll = async (req, res) => {
     try {
       const customers = await userManager.findAll();
 
@@ -112,7 +105,7 @@ class UserController {
       console.error(err);
       res.sendStatus(500);
     }
-  }
+  };
 }
 
-module.exports = UserController;
+module.exports = User;

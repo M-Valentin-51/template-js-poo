@@ -8,8 +8,19 @@ const hashingOptions = {
   parallelism: 1,
 };
 
-const hashPassword = (password) => {
-  return argon2.hash(password, hashingOptions);
+const hashPassword = (req, res, next) => {
+  argon2
+    .hash(req.body.password, hashingOptions)
+    .then((hashedPassword) => {
+      req.body.hashPassword = hashedPassword;
+      delete req.body.password;
+
+      next();
+    })
+    .catch((err) => {
+      console.error(err);
+      res.sendStatus(500);
+    });
 };
 
 // const verifyPassword = (req, res) => {
