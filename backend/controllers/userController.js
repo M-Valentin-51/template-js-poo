@@ -6,19 +6,20 @@ const userManager = new UserManager();
 
 class UserController {
   static async create(req, res) {
-    this.email = req.body.email;
-    this.name = req.body.name;
+    let email = req.body.email;
+    let name = req.body.name;
+    let hashPassword;
     try {
-      this.hashPassword = await auth.hashPassword(req.body.password);
+      hashPassword = await auth.hashPassword(req.body.password);
     } catch (err) {
       res.sendStatus(500);
     }
 
     try {
       const result = await userManager.insert({
-        email: this.email,
-        name: this.name,
-        hashPassword: this.hashPassword,
+        email: email,
+        name: name,
+        hashPassword: hashPassword,
       });
 
       const user = { ...result };
